@@ -53,7 +53,3 @@ env/
 
 # Logs
 *.log
-
-# Local directories
-client/
-flask_server/
