@@ -1,7 +1,7 @@
 from flask import Flask
-from config import config
-from extensions import db, bcrypt, migrate, login_manager
-from routes import register_routes
+from flask_server.config import config
+from flask_server.extensions import db, bcrypt, migrate, login_manager
+from flask_server.routes import register_routes
 
 # config_name specifies which configuration to use
 def create_app(config_name):

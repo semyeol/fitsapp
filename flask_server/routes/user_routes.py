@@ -10,11 +10,19 @@ user_bp = Blueprint('user', __name__)
 @user_bp.route('/api/user', methods=['POST'])
 def create_user():
     data = request.get_json()
-    # no need to hash password again here
-    # hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
-    new_user = User(username=data['username'], password=data['password'])
+
+    email = data.get('email')
+    username = data.get('username')
+    password = data.get('password')
+
+    if not email or not username or not password:
+        return jsonify({'message': 'Missing data!'}), 400
+    
+    new_user = User(email=email, username=username, password=password)
+
     db.session.add(new_user)
     db.session.commit()
+    
     return jsonify({'message': 'User created!'}), 201
 
 @user_bp.route('/api/users', methods=['GET'])
