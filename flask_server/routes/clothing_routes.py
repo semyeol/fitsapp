@@ -5,6 +5,8 @@ from werkzeug.utils import secure_filename
 from flask_server import db
 from flask_server.models.clothing_model import Clothing
 from flask_server.utils.background_removal import remove_background
+from flask_server.utils.heic_to_png import heic_to_png
+from PIL import Image
 
 clothing_bp = Blueprint('clothing', __name__)
 
@@ -35,9 +37,31 @@ def create_clothing():
 
     # secure_filename removes any special characters from the filename
     filename = secure_filename(file.filename)
+
+    # split at '.' & [1] extracts the file extension
+    file_ext = filename.split('.', 1)[1].lower()
+
     # construct the path to save the image
     image_path = os.path.join(UPLOAD_FOLDER, filename)
     file.save(image_path)
+
+    if file_ext == 'heic':
+        png_file = filename.split('.', 1)[0] + '.png'
+        png_path = os.path.join(UPLOAD_FOLDER, png_file)
+        heic_to_png(image_path, png_path)
+        
+        try:
+            with Image.open(png_path) as img:
+                img.load()
+            print(f"Verified PNG file is valid: {png_path}")
+        except Exception as e:
+            return jsonify({'error': 'Converted image is not valid'}), 400
+
+        # remove the original heic file
+        os.remove(image_path) 
+        
+        # set path to the new png file
+        image_path = png_path
 
     # construct the path to save the processed image
     processed_img_path = os.path.join(PROCESSED_FOLDER, 'nobg_' + filename)
