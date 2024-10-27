@@ -29,6 +29,8 @@ def create_clothing():
     layer = data['layer']
     user_id = data['user_id']
     
+    # request.files is a dictionary containing the uploaded files
+    # although 'image' is not just a string, it's a key to a the name of a file
     if 'image' not in request.files:
         return jsonify({'error': 'No image file provided'}), 400
     
@@ -36,6 +38,7 @@ def create_clothing():
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
     
+    # no special chars, filename matches that of a system file i.e. 'index.html', 
     filename = secure_filename(file.filename)
     
     # Save the uploaded image
@@ -45,6 +48,7 @@ def create_clothing():
     # Check if the uploaded file is a HEIC image
     if filename.lower().endswith('.heic'):
         # Convert HEIC to PNG
+        # split once before the last period, '[0]' is the filename
         png_filename = filename.rsplit('.', 1)[0] + '.png'
         png_image_path = os.path.join(UPLOAD_FOLDER, png_filename)
         heic_to_png(input_image_path, png_image_path)
