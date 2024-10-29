@@ -9,7 +9,15 @@ class User(db.Model):
     username = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    verify_token = db.Column(db.String, nullable=True)
+    verify_token_expiration = db.Column(db.DateTime, nullable=True)
+    is_verified = db.Column(db.Boolean, nullable=False, default=False)
+
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
+    
+    reset_token = db.Column(db.String, nullable=True)
+    reset_token_expiration = db.Column(db.DateTime, nullable=True)
 
     def __init__(self, email, username, password, is_admin=False):
         self.email = email

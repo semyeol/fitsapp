@@ -10,7 +10,7 @@ from flask_server.utils.image_folders import UPLOAD_FOLDER, PROCESSED_FOLDER
 
 create_clothing_bp = Blueprint('create_clothing', __name__)
 
-@create_clothing_bp.route('/api/clothing', methods=['POST'])
+@create_clothing_bp.route('/api/create_clothing', methods=['POST'])
 def create_clothing():
 
     # request.form is a dictionary containing the form data

@@ -1,4 +1,3 @@
-import os
 from PIL import Image
 import pillow_heif
 import logging
