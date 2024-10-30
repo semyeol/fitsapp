@@ -10,6 +10,7 @@ class User(db.Model):
     password = db.Column(db.String, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
+    # originally used 
     verify_token = db.Column(db.String, nullable=True)
     verify_token_expiration = db.Column(db.DateTime, nullable=True)
     is_verified = db.Column(db.Boolean, nullable=False, default=False)

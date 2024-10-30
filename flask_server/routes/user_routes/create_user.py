@@ -1,6 +1,9 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from flask_server.models.user_model import User
+from flask_server.utils.verification_code_generator import generate_verification_code, send_verification_email
 from flask_server import db
+from datetime import datetime, timedelta
+from flask import current_app as app
 
 # defines API endpoints related to user management
 
@@ -21,8 +24,19 @@ def create_user():
     
     new_user = User(email=email, username=username, password=password)
 
+    new_user.verify_token = generate_verification_code(email)
+    new_user.verify_token_expiration = datetime.utcnow() + timedelta(minutes=10)
+
     db.session.add(new_user)
     db.session.commit()
+
+    # store user email in session
+    # this way, user does not need to reenter email--just the verification code
+    session['user_email'] = email
+    session.permanent = True
+    app.permanent_session_lifetime = timedelta(minutes=10)
+
+    send_verification_email(new_user)
     
     return jsonify({'message': 'User created!'}), 201
 
