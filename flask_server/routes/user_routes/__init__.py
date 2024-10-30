@@ -7,3 +7,4 @@ user_bp = Blueprint('user', __name__)
 user_bp.register_blueprint(create_user_bp)
 user_bp.register_blueprint(get_users_bp)
 user_bp.register_blueprint(verify_user_bp)
+
