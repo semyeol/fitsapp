@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, session
 from flask_server.models.user_model import User
-from flask_server.utils.verification_code_generator import generate_verification_code, send_verification_email
+from flask_server.utils.user_helpers import generate_verification_code, send_verification_email
+# from flask_server.utils.verification_code_generator import generate_verification_code, send_verification_email
 from flask_server import db
 from datetime import datetime, timedelta
 from flask import current_app as app

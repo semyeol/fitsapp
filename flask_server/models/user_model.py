@@ -20,11 +20,15 @@ class User(db.Model):
     reset_token = db.Column(db.String, nullable=True)
     reset_token_expiration = db.Column(db.DateTime, nullable=True)
 
+    # implemented 'check_password' in the model b/c it'll only be used for User model
     def __init__(self, email, username, password, is_admin=False):
         self.email = email
         self.username = username
         self.password = bcrypt.generate_password_hash(password).decode('utf-8')
         self.is_admin = is_admin
+
+    def check_password(self, password):
+        return bcrypt.check_password_hash(self.password, password)
 
     def __repr__(self):
         return f'<User {self.username}>'

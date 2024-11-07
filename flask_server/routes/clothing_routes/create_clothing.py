@@ -4,9 +4,10 @@ from flask import Blueprint, jsonify, request
 from werkzeug.utils import secure_filename
 from flask_server import db
 from flask_server.models.clothing_model import Clothing
-from flask_server.utils.background_removal import remove_background
-from flask_server.utils.heic_to_png import heic_to_png
-from flask_server.utils.image_folders import UPLOAD_FOLDER, PROCESSED_FOLDER
+from flask_server.utils.upload_clothing_helpers import remove_background, heic_to_png, UPLOAD_FOLDER, PROCESSED_FOLDER
+# from flask_server.utils.background_removal import remove_background
+# from flask_server.utils.heic_to_png import heic_to_png
+# from flask_server.utils.image_folders import UPLOAD_FOLDER, PROCESSED_FOLDER
 
 create_clothing_bp = Blueprint('create_clothing', __name__)
 

@@ -25,6 +25,9 @@ class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'postgresql://sem:secret@localhost/clothingappdb'
     WTF_CSRF_ENABLED = False
+    HOST = '0.0.0.0'
+    PORT = 5000
+    
 
 # class ProductionConfig(Config):
     # DEBUG = False
