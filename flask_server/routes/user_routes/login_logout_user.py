@@ -2,7 +2,6 @@ from flask import current_app as app
 from flask import Blueprint, jsonify, request, session
 from flask_server.models.user_model import User
 from flask_server import db
-from flask_server.utils.user_helpers import check_password
 
 login_user_bp = Blueprint('login_user', __name__)
 logout_user_bp = Blueprint('logout_user', __name__)
