@@ -1,121 +1,68 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, { useEffect } from 'react';
+import { Linking } from 'react-native';
+import { NavigationContainer, LinkingOptions, NavigationContainerRef } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import CreateUserScreen from './src/screens/create_user';
+import ResetPasswordScreen from './src/screens/reset_pw';
+import { RootStackParamList } from './src/types/navigation';
 
-// .tsx is TypeScript with JS XML, allowing for HTML-like syntax in JS
-// adds static typing. helps catch errors at compile time (easier to debug)
+// Initialize Stack Navigator with typed parameter list
+const Stack = createStackNavigator<RootStackParamList>();
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+// Create a navigation reference
+const navigationRef = React.createRef<NavigationContainerRef<RootStackParamList>>();
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+// Deep linking configuration
+const linking: LinkingOptions<RootStackParamList> = {
+  prefixes: ['myapp://'],
+  config: {
+    screens: {
+      CreateUser: 'create_user',
+      ResetPassword: 'set_new_password/:token',
+    },
+  },
+  getInitialURL: async () => {
+    const url = await Linking.getInitialURL();
+    console.log("Initial URL:", url);
+    return url;
+  },
+};
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+const App = (): React.JSX.Element => {
+  useEffect(() => {
+    const handleDeepLink = (event: { url: string }) => {
+      const url = event.url;
+      console.log("Received URL while app is open:", url);
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+      if (url) {
+        const token = url.split('/').pop();  // Extract the token from the URL
+        navigationRef.current?.navigate('ResetPassword', { token: token || '' });
+      }
+    };
 
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+    const subscription = Linking.addEventListener("url", handleDeepLink);
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <NavigationContainer ref={navigationRef} linking={linking}>
+      <Stack.Navigator initialRouteName="CreateUser">
+        <Stack.Screen 
+          name="CreateUser" 
+          component={CreateUserScreen} 
+          options={{ title: 'Create User' }} 
+        />
+        <Stack.Screen 
+          name="ResetPassword" 
+          component={ResetPasswordScreen} 
+          options={{ title: 'Reset Password' }} 
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
-}
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+};
 
 export default App;
