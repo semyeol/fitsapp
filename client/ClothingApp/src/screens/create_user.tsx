@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, Alert } from 'react-native';
-// createUser is frontend code to handle the API call to flask create_user
-import { createUser } from '../api/user'; 
+import { View, TextInput, Button, Alert } from 'react-native';
+import { createUser } from '../api/user';
 
-const CreateUserScreen = () => {
-  const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+// Define props type (empty here since no props are passed)
+type CreateUserScreenProps = {};
+
+// Define the component with React.FC to specify it’s a functional component
+const CreateUserScreen: React.FC<CreateUserScreenProps> = () => {
+  // State variables
+  const [email, setEmail] = useState<string>('');      // email state as string
+  const [username, setUsername] = useState<string>(''); // username state as string
+  const [password, setPassword] = useState<string>(''); // password state as string
 
   const handleCreateUser = async () => {
     try {
