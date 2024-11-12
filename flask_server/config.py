@@ -27,6 +27,8 @@ class DevelopmentConfig(Config):
     WTF_CSRF_ENABLED = False
     HOST = '0.0.0.0'
     PORT = 5000
+    CLIENT_URL='myapp://'
+
     
 
 # class ProductionConfig(Config):

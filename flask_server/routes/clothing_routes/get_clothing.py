@@ -3,10 +3,9 @@
 from flask import Blueprint, jsonify, request
 from flask_server import db
 from flask_server.models.clothing_model import Clothing
+from flask_server.routes.clothing_routes.clothing_bp import clothing_bp
 
-get_clothing_bp = Blueprint('get_clothing', __name__)
-
-@get_clothing_bp.route('/api/get_clothing', methods=['GET'])
+@clothing_bp.route('/api/get_clothing', methods=['GET'])
 def get_clothing():
     # request.args reps the query parameters in the URL after the '?' i.e. '?size=M&color=blue.'
     size = request.args.get('size') # if finds 'size' in query params, returns the value, otherwise return None 
