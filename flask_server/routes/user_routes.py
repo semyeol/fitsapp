@@ -1,14 +1,43 @@
 from flask import Blueprint, jsonify, request, session
 from flask_server.models.user_model import User
 from flask_server.utils.user_helpers import generate_verification_code, send_verification_email, send_password_reset_email
-# from flask_server.utils.verification_code_generator import generate_verification_code, send_verification_email
 from flask_server import db
 from datetime import datetime, timedelta
 from flask import current_app as app
+import jwt
+from functools import wraps
 
 # defines API endpoints related to user management
 
 user_bp = Blueprint('user', __name__)
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        if 'Authorization' in request.headers:
+            auth_header = request.headers['Authorization']
+            try:
+                token = auth_header.split(" ")[1]
+            except IndexError:
+                return jsonify({'message': 'Token is missing!'}), 401
+
+        if not token:
+            return jsonify({'message': 'Token is missing!'}), 401
+
+        try:
+            # Verify the token using your secret key
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            current_user = User.query.get(data['user_id'])
+            if not current_user:
+                return jsonify({'message': 'User not found!'}), 401
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Token has expired!'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'message': 'Invalid token!'}), 401
+
+        return f(current_user, *args, **kwargs)
+    return decorated
 
 # call the User model to create a new user
 @user_bp.route('/create_user', methods=['POST'])
@@ -109,12 +138,39 @@ def login_user():
     user = User.query.filter((User.username == identifier) | (User.email == identifier)).first()
 
     if user and user.check_password(password):
-        return jsonify({'message': 'W login!'}), 200
+        # Generate token without expiration
+        token = jwt.encode({
+            'user_id': user.id
+        }, app.config['SECRET_KEY'], algorithm="HS256")
+        
+        return jsonify({
+            'message': 'W login!',
+            'token': token,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email
+            }
+        }), 200
     else:
         return jsonify({'message': 'Double check credentials...'}), 401
 
+@user_bp.route('/validate-token', methods=['GET'])
+@token_required
+def validate_token(current_user):
+    # If we get here, the token is valid (because of @token_required decorator)
+    return jsonify({
+        'isValid': True,
+        'user': {
+            'id': current_user.id,
+            'username': current_user.username,
+            'email': current_user.email
+        }
+    })
+
 @user_bp.route('/logout_user', methods=['POST'])
-def logout_user():
+@token_required
+def logout_user(current_user):
     # log out by only removing user_id from session
     session.pop('user_id', None)
     return jsonify({'message': 'Bye bye!'}), 200
@@ -122,34 +178,68 @@ def logout_user():
 @user_bp.route('/reset_password_link', methods=['POST'])
 def reset_password_link():
     data = request.get_json()
-
     email = data.get('email')
+    
     if not email:
         return jsonify({'message': 'Enter your email...'}), 400
     
     user = User.query.filter_by(email=email).first()
-
     if not user: 
         return jsonify({'message': 'Email not found...'}), 404
-    else:
-        send_password_reset_email(user)
-        return jsonify({'message': 'Reset password link sent!'}), 200
+
+    # Generate a temporary reset token that expires in 1 hour
+    reset_token = jwt.encode({
+        'user_id': user.id,
+        'exp': datetime.utcnow() + timedelta(hours=1),
+        'purpose': 'password_reset'
+    }, app.config['SECRET_KEY'], algorithm="HS256")
+    
+    # Send reset email with the token
+    send_password_reset_email(user, reset_token)
+    return jsonify({'message': 'Reset password link sent!'}), 200
+
+@user_bp.route('/reset_password', methods=['POST'])
+def reset_password():
+    data = request.get_json()
+    reset_token = data.get('token')
+    new_password = data.get('new_password')
+
+    if not reset_token or not new_password:
+        return jsonify({'message': 'Missing token or new password'}), 400
+
+    try:
+        # Verify the reset token
+        payload = jwt.decode(reset_token, app.config['SECRET_KEY'], algorithms=["HS256"])
+        
+        # Check if this is a password reset token
+        if payload.get('purpose') != 'password_reset':
+            return jsonify({'message': 'Invalid reset token'}), 400
+
+        user = User.query.get(payload['user_id'])
+        if not user:
+            return jsonify({'message': 'User not found'}), 404
+
+        # Update password
+        user.set_new_password(new_password)
+        db.session.commit()
+
+        return jsonify({'message': 'Password reset successful!'}), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Reset token has expired'}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({'message': 'Invalid reset token'}), 400
 
 @user_bp.route('/set_new_password', methods=['POST'])
-def set_new_password():
+@token_required
+def set_new_password(current_user):
     data = request.get_json()
 
-    reset_token = data.get('reset_token')
     new_password = data.get('new_password')
 
     if not new_password:
         return jsonify({'message': 'Enter a new password...'}), 400
 
-    user = User.query.filter_by(reset_token=reset_token).first()
-
-    if not user:
-        return jsonify({'message': 'Invalid reset token...'}), 404
-    else:
-        user.set_new_password(new_password)
-        db.session.commit()
-        return jsonify({'message': 'Password reset!'}), 200
+    current_user.set_new_password(new_password)
+    db.session.commit()
+    return jsonify({'message': 'Password reset!'}), 200

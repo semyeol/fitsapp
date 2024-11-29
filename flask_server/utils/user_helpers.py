@@ -7,6 +7,8 @@ import hashlib
 import secrets
 from datetime import datetime, timedelta
 from flask_server.extensions import db
+from smtplib import SMTPException
+import logging
 
 # mail = Mail()  # Initialize Flask-Mail
 
@@ -27,45 +29,66 @@ def generate_verification_code(email):
     return f"{code:06d}" # pad with zeros to ensure 6 digits
 
 def send_verification_email(user):
-    code = generate_verification_code(user.email)
-    # verification_url = url_for('verify_user', token=code, _external=True)
-    user.verify_token = code
-    user.verify_token_expiration = datetime.utcnow() + timedelta(minutes=10)
-    msg = Message(subject="Sem's Closet: Verify your email",
-                  sender=current_app.config['MAIL_DEFAULT_SENDER'],
-                  recipients=[user.email])
-    msg.body = f'Verification code is: {code}'
-    mail.send(msg)
+    try:
+        code = generate_verification_code(user.email)
+        user.verify_token = code
+        user.verify_token_expiration = datetime.utcnow() + timedelta(minutes=10)
+        
+        msg = Message(subject="Sem's Closet: Verify your email",
+                    sender=current_app.config['MAIL_DEFAULT_SENDER'],
+                    recipients=[user.email])
+        msg.body = f'Verification code is: {code}'
+        
+        print(f"Attempting to send email to {user.email} with code {code}")
+        print(f"Mail settings: MAIL_SERVER={current_app.config['MAIL_SERVER']}, MAIL_PORT={current_app.config['MAIL_PORT']}")
+        print(f"Using sender: {current_app.config['MAIL_DEFAULT_SENDER']}")
+        
+        mail.send(msg)
+        print("Email sent successfully!")
+        
+    except SMTPException as e:
+        print(f"Failed to send email: {str(e)}")
+        # Still return success to client but log the error
+        logging.error(f"Failed to send verification email to {user.email}: {str(e)}")
+    except Exception as e:
+        print(f"Unexpected error sending email: {str(e)}")
+        logging.error(f"Unexpected error sending verification email to {user.email}: {str(e)}")
 
 def generate_reset_token():
     return secrets.token_urlsafe(32)
 
-def send_password_reset_email(user):
-    reset_token = generate_reset_token()
-    user.reset_token = reset_token
-    user.reset_token_expiration = datetime.utcnow() + timedelta(minutes=10)
-    
-    # update the token in the db and save it
-    db.session.commit()
+def send_password_reset_email(user, reset_token):
+    try:
+        msg = Message(subject="Sem's Closet: Reset your password",
+                      sender=current_app.config['MAIL_DEFAULT_SENDER'],
+                      recipients=[user.email])
+        
+        # Use the JWT token in the reset URL
+        reset_url = f'{current_app.config["CLIENT_URL"]}reset-password?token={reset_token}'
 
-    msg = Message(subject="Sem's Closet: Reset your password",
-                  sender=current_app.config['MAIL_DEFAULT_SENDER'],
-                  recipients=[user.email])
-    reset_url = f'{current_app.config["CLIENT_URL"]}set_new_password/{reset_token}'
-
-    # in mobile Gmail app, link is formatted as plain text
-    # hyperlink works in native IOS mail app
-    msg.body = f'Reset your password here: {reset_url}'
-    msg.html = f'''
-        <p>Click the link below to reset your password:</p>
-        <a href="{reset_url}">
-            Reset your password
-        </a>
-        <p>If the link doesn’t work, copy and paste the following URL into your browser:</p>
-        <p>{reset_url}</p>
-    '''
-    mail.send(msg)
-
-
-
-
+        msg.body = f'Reset your password here: {reset_url}'
+        msg.html = f'''
+            <p>Click the link below to reset your password:</p>
+            <a href="{reset_url}">
+                Reset your password
+            </a>
+            <p>If the link doesn't work, copy and paste the following URL into your browser:</p>
+            <p>{reset_url}</p>
+            <p>This link will expire in 1 hour.</p>
+        '''
+        
+        print(f"Attempting to send password reset email to {user.email}")
+        print(f"Mail settings: MAIL_SERVER={current_app.config['MAIL_SERVER']}, MAIL_PORT={current_app.config['MAIL_PORT']}")
+        print(f"Using sender: {current_app.config['MAIL_DEFAULT_SENDER']}")
+        
+        mail.send(msg)
+        print("Password reset email sent successfully!")
+        
+    except SMTPException as e:
+        print(f"Failed to send password reset email: {str(e)}")
+        logging.error(f"Failed to send password reset email to {user.email}: {str(e)}")
+        raise
+    except Exception as e:
+        print(f"Unexpected error sending password reset email: {str(e)}")
+        logging.error(f"Unexpected error sending password reset email to {user.email}: {str(e)}")
+        raise
