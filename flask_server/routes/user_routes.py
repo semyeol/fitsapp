@@ -11,7 +11,7 @@ from flask import current_app as app
 user_bp = Blueprint('user', __name__)
 
 # call the User model to create a new user
-@user_bp.route('/api/create_user', methods=['POST'])
+@user_bp.route('/create_user', methods=['POST'])
 def create_user():
     data = request.get_json()
 
@@ -27,20 +27,36 @@ def create_user():
     new_user.verify_token = generate_verification_code(email)
     new_user.verify_token_expiration = datetime.utcnow() + timedelta(minutes=10)
 
-    db.session.add(new_user)
-    db.session.commit()
+    try:
+        db.session.add(new_user)
+        db.session.commit()
 
-    # store user email in session
-    # this way, user does not need to reenter email--just the verification code
-    session['user_email'] = email
-    session.permanent = True
-    app.permanent_session_lifetime = timedelta(minutes=10)
+        # store user email in session
+        # this way, user does not need to reenter email--just the verification code
+        session['user_email'] = email
+        session.permanent = True
+        app.permanent_session_lifetime = timedelta(minutes=10)
 
-    send_verification_email(new_user)
+        send_verification_email(new_user)
+
+        return jsonify({'message': 'Verify your email!'}), 201
+
+    # catches SQLAlchemy IntegrityError
+    except IntegrityError as e:
+        db.session.rollback()
+        if 'user_email_key' in str(e):
+            return jsonify({'message': 'Email already registered...', 'field': 'email'}), 409
+        elif 'user_username_key' in str(e):
+            return jsonify({'message': 'Username is taken...', 'field': 'username'}), 409
+        return jsonify({'message': 'Error creating account...'}), 400
     
-    return jsonify({'message': 'Verify your email!'}), 201
+    # catches other general exceptions
+    except Exception as e:
+        # undo the failed DB operation
+        db.session.rollback()
+        return jsonify({'message': 'Error creating account...'}), 500
 
-@user_bp.route('/api/verify_user', methods=['POST'])
+@user_bp.route('/verify_user', methods=['POST'])
 def verify_user():
     code_entered = request.get_json().get('code')
     
@@ -61,7 +77,7 @@ def verify_user():
     else:
         return jsonify({'message': "Your code's wrong or it's expired..."}), 400
 
-@user_bp.route('/api/resend_verification_email', methods=['POST'])
+@user_bp.route('/resend_verification_email', methods=['POST'])
 def resend_verification_email():
     user_email = session.get('user_email')
     if not user_email:
@@ -79,7 +95,7 @@ def resend_verification_email():
 
     return jsonify({'message': 'Resent verification email!'}), 200
 
-@user_bp.route('/api/login_user', methods=['POST'])
+@user_bp.route('/login_user', methods=['POST'])
 def login_user():
     data = request.get_json()
 
@@ -97,13 +113,13 @@ def login_user():
     else:
         return jsonify({'message': 'Double check credentials...'}), 401
 
-@user_bp.route('/api/logout_user', methods=['POST'])
+@user_bp.route('/logout_user', methods=['POST'])
 def logout_user():
     # log out by only removing user_id from session
     session.pop('user_id', None)
     return jsonify({'message': 'Bye bye!'}), 200
 
-@user_bp.route('/api/reset_password_link', methods=['POST'])
+@user_bp.route('/reset_password_link', methods=['POST'])
 def reset_password_link():
     data = request.get_json()
 
@@ -119,7 +135,7 @@ def reset_password_link():
         send_password_reset_email(user)
         return jsonify({'message': 'Reset password link sent!'}), 200
 
-@user_bp.route('/api/set_new_password', methods=['POST'])
+@user_bp.route('/set_new_password', methods=['POST'])
 def set_new_password():
     data = request.get_json()
 

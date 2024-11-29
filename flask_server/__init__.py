@@ -23,7 +23,12 @@ def create_app(config_name):
 
     register_routes(app)
 
-    CORS(app, supports_credentials=True)
+    # Configure CORS with specific settings
+    CORS(app, 
+         resources={r"/api/*": {"origins": ["exp://192.168.0.21:*", "http://192.168.0.21:*", "myapp://*"]}},
+         supports_credentials=True,
+         allow_headers=["Content-Type", "Authorization"],
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
     # Create the database tables if they don't exist
     with app.app_context():
