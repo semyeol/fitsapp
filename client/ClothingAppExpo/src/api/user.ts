@@ -7,7 +7,7 @@ interface UserData {
 }
 
 interface Credentials {
-  email: string;
+  identifier: string;  // Can be either email or username
   password: string;
 }
 
@@ -64,10 +64,10 @@ export const resendVerificationEmail = async (email: string) => {
 
 export const loginUser = async (credentials: Credentials) => {
   try {
-    const response = await apiClient.post('/user/login_user', credentials);  // Updated path
+    const response = await apiClient.post('/user/login_user', credentials);
     return response.data;
   } catch (error: any) {
-    console.error("Error logging in user:", error);
+    console.error("Error logging in:", error);
     throw error;
   }
 }

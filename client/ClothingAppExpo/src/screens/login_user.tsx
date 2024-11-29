@@ -8,18 +8,18 @@ type LoginUserScreenProps = {
 };
 
 const LoginUserScreen: React.FC<LoginUserScreenProps> = ({ navigation }) => {
-    const [email, setEmail] = useState<string>('');
+    const [identifier, setIdentifier] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [error, setError] = useState<string>('');
 
     const handleLogin = async () => {
         try {
-            const response = await loginUser({ email, password });
+            const response = await loginUser({ identifier, password });
             console.log('Login response:', response);
             navigation.navigate('Home');
         } catch (error) {
             console.error('Login error:', error);
-            setError('Login failed. Please check your email and password.');
+            setError('Login failed. Check your credentials.');
         }
     };
 
@@ -28,9 +28,9 @@ const LoginUserScreen: React.FC<LoginUserScreenProps> = ({ navigation }) => {
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
           
           <CustomInput 
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
+            placeholder="Username/Email"
+            value={identifier}
+            onChangeText={setIdentifier}
             keyboardType="email-address"
           />
           
