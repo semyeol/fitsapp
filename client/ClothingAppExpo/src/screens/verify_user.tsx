@@ -1,15 +1,10 @@
 import React, {useState} from 'react';
 import { View, TextInput, Button, Alert, StyleSheet } from 'react-native';
 import { verifyUser } from '../api/user';
-import { RouteProp } from '@react-navigation/native';
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParamList } from '../types/navigation';
 
-type VerifyUserScreenProps = {
-  route: RouteProp<{
-    params: {
-      email: string;
-    };
-  }, 'params'>;
-};
+type VerifyUserScreenProps = StackScreenProps<RootStackParamList, 'VerifyUser'>;
 
 const VerifyUserScreen: React.FC<VerifyUserScreenProps> = ({ route }) => {
   const { email } = route.params;

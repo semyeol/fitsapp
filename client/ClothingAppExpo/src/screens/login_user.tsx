@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import {View, Text, Button, StyleSheet, TouchableOpacity} from "react-native";
-import {loginUser } from "../api/user";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {loginUser} from "../api/user";
 import CustomInput from "../components/CustomInput";
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParamList } from '../types/navigation';
+import { setAuthToken } from '../api/auth';
 
-type LoginUserScreenProps = {
-    navigation: any;
-};
+type LoginUserScreenProps = StackScreenProps<RootStackParamList, 'Login'>;
 
 const LoginUserScreen: React.FC<LoginUserScreenProps> = ({ navigation }) => {
     const [identifier, setIdentifier] = useState<string>('');
@@ -16,7 +18,13 @@ const LoginUserScreen: React.FC<LoginUserScreenProps> = ({ navigation }) => {
         try {
             const response = await loginUser({ identifier, password });
             console.log('Login response:', response);
-            navigation.navigate('Home');
+            
+            if (response.token) {
+                await setAuthToken(response.token);
+                navigation.replace('Closet'); // Use replace instead of navigate
+            } else {
+                setError('Login failed: No token received');
+            }
         } catch (error) {
             console.error('Login error:', error);
             setError('Login failed. Check your credentials.');
@@ -25,30 +33,37 @@ const LoginUserScreen: React.FC<LoginUserScreenProps> = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-          
-          <CustomInput 
-            placeholder="Username/Email"
-            value={identifier}
-            onChangeText={setIdentifier}
-            keyboardType="email-address"
-          />
-          
-          <CustomInput 
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-          
-          <Button title="Login" onPress={handleLogin} />
-          
-          <TouchableOpacity 
-            onPress={() => navigation.navigate('CreateUser')}
-            style={styles.linkContainer}
-          >
-            <Text style={styles.linkText}>Don't have an account? Create one</Text>
-          </TouchableOpacity>
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            
+            <CustomInput 
+                placeholder="Username/Email"
+                value={identifier}
+                onChangeText={setIdentifier}
+                keyboardType="email-address"
+            />
+            
+            <CustomInput 
+                placeholder="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+            />
+            
+            <Button title="Login" onPress={handleLogin} />
+            
+            <TouchableOpacity 
+                onPress={() => navigation.navigate('CreateUser')}
+                style={styles.linkContainer}
+            >
+                <Text style={styles.linkText}>Don't have an account? Create one</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+                onPress={() => navigation.navigate('ForgotPassword')}
+                style={styles.linkContainer}
+            >
+                <Text style={styles.linkText}>Forgot Password?</Text>
+            </TouchableOpacity>
         </View>
     );
 };

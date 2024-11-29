@@ -5,25 +5,17 @@ import { RootStackParamList } from '../types/navigation';
 import CustomInput from '../components/CustomInput';
 import { API_URL } from '../api/config';
 
-type ResetPasswordScreenProps = StackScreenProps<RootStackParamList, 'ResetPassword'>;
+type ForgotPasswordScreenProps = StackScreenProps<RootStackParamList, 'ForgotPassword'>;
 
-const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ route, navigation }) => {
-  const { token } = route.params;
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation }) => {
+  const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleResetPassword = async () => {
-    if (!newPassword || !confirmPassword) {
-      setMessage('Please fill in all fields');
-      setIsError(true);
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setMessage('Passwords do not match');
+  const handleResetRequest = async () => {
+    if (!email) {
+      setMessage('Please enter your email');
       setIsError(true);
       return;
     }
@@ -33,28 +25,21 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ route, naviga
     setIsError(false);
 
     try {
-      const response = await fetch(`${API_URL}/reset_password`, {
+      const response = await fetch(`${API_URL}/reset_password_link`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          token,
-          new_password: newPassword,
-        }),
+        body: JSON.stringify({ email }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setMessage('Password reset successful!');
+        setMessage('Check your email for password reset instructions!');
         setIsError(false);
-        // Navigate to login after a short delay
-        setTimeout(() => {
-          navigation.replace('Login');
-        }, 2000);
       } else {
-        setMessage(data.message || 'Failed to reset password');
+        setMessage(data.message || 'Failed to send reset email');
         setIsError(true);
       }
     } catch (error) {
@@ -67,20 +52,14 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ route, naviga
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Set New Password</Text>
-
+      <Text style={styles.title}>Reset Password</Text>
+      
       <CustomInput
-        placeholder="New Password"
-        value={newPassword}
-        onChangeText={setNewPassword}
-        secureTextEntry
-      />
-
-      <CustomInput
-        placeholder="Confirm Password"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry
+        placeholder="Enter your email"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
       />
 
       {message ? (
@@ -90,9 +69,14 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ route, naviga
       ) : null}
 
       <Button
-        title={isLoading ? "Resetting..." : "Reset Password"}
-        onPress={handleResetPassword}
+        title={isLoading ? "Sending..." : "Send Reset Link"}
+        onPress={handleResetRequest}
         disabled={isLoading}
+      />
+
+      <Button
+        title="Back to Login"
+        onPress={() => navigation.navigate('Login')}
       />
     </View>
   );
@@ -122,4 +106,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ResetPasswordScreen;
+export default ForgotPasswordScreen;

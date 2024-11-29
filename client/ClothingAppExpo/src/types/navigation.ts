@@ -5,4 +5,7 @@ export type RootStackParamList = {
     Login: undefined;
     CreateUser: undefined;
     ResetPassword: { token: string };
+    VerifyUser: { email: string };
+    Closet: undefined;
+    ForgotPassword: undefined;
 };

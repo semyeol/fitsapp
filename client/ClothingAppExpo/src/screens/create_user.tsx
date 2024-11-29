@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { View, Button, Alert, Text, StyleSheet } from 'react-native';
 import { createUser } from '../api/user';
 import CustomInput from '../components/CustomInput';
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParamList } from '../types/navigation';
 
-type CreateUserScreenProps = {};
+type CreateUserScreenProps = StackScreenProps<RootStackParamList, 'CreateUser'>;
 
-const CreateUserScreen: React.FC<CreateUserScreenProps> = () => {
+const CreateUserScreen: React.FC<CreateUserScreenProps> = ({ navigation }) => {
   const [email, setEmail] = useState<string>('');
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -21,8 +23,8 @@ const CreateUserScreen: React.FC<CreateUserScreenProps> = () => {
 
     try {
       const response = await createUser({ email, username, password });
-      Alert.alert('Success', response.message);
-      // Navigate to verification screen or next step
+      // Navigate to verification screen
+      navigation.replace('VerifyUser', { email });
     } catch (error: any) {
       if (error.response?.status === 409) {
         // Handle specific field errors
