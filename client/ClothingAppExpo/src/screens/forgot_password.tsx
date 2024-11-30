@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Button } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 import { RootStackParamList } from '../types/navigation';
 import CustomInput from '../components/CustomInput';
-import { API_URL } from '../api/config';
+import config from '@config';
 
 type ForgotPasswordScreenProps = StackScreenProps<RootStackParamList, 'ForgotPassword'>;
 
@@ -25,7 +25,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
     setIsError(false);
 
     try {
-      const response = await fetch(`${API_URL}/reset_password_link`, {
+      const response = await fetch(`${config.extra.apiBaseUrl}/reset_password_link`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

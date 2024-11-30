@@ -1,17 +1,38 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, StyleSheet, Button } from "react-native";
-import { StackScreenProps } from '@react-navigation/stack';
-import { RootStackParamList } from '../types/navigation';
+import { CompositeNavigationProp } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { MainAppStackParamList, RootStackParamList } from '../types/navigation';
 import { removeAuthToken } from '../api/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type ClosetScreenProps = StackScreenProps<RootStackParamList, 'Closet'>;
+type ClosetScreenNavigationProp = CompositeNavigationProp<
+    BottomTabNavigationProp<MainAppStackParamList, 'Closet'>,
+    StackNavigationProp<RootStackParamList>
+>;
+
+type ClosetScreenProps = {
+    navigation: ClosetScreenNavigationProp;
+};
 
 const ClosetScreen: React.FC<ClosetScreenProps> = ({ navigation }) => {
+    
+    useEffect(() => {
+        const checkAuth = async () => {
+            const isAuthenticated = await AsyncStorage.getItem('isAuthenticated');
+            if (isAuthenticated !== 'true') {
+                navigation.navigate('Login');
+            }
+        };
+        checkAuth();
+    }, [navigation]);
+
     const handleLogout = async () => {
         try {
             await removeAuthToken();
-            // Use replace to prevent going back to the closet screen after logout
-            navigation.replace('Login');
+            await AsyncStorage.removeItem('isAuthenticated');
+            navigation.navigate('Login');
         } catch (error) {
             console.error('Error logging out:', error);
         }

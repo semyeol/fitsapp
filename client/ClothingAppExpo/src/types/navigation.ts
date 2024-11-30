@@ -1,11 +1,20 @@
-// src/types/navigation_types.ts
+// src/types/navigation.ts
 
-// Define all routes in your navigation stack
-export type RootStackParamList = {
+// For the authentication stack
+export type AuthStackParamList = {
     Login: undefined;
     CreateUser: undefined;
     ResetPassword: { token: string };
     VerifyUser: { email: string };
-    Closet: undefined;
     ForgotPassword: undefined;
+    MainTabs: undefined; // This will hold our tab navigator
 };
+
+// For the main app tabs
+export type MainTabParamList = {
+    Closet: undefined;
+    FitBuilder: undefined;
+};
+
+// Re-export RootStackParamList as a combination of both for backwards compatibility
+export type RootStackParamList = AuthStackParamList;

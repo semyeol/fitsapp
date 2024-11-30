@@ -21,7 +21,8 @@ const LoginUserScreen: React.FC<LoginUserScreenProps> = ({ navigation }) => {
             
             if (response.token) {
                 await setAuthToken(response.token);
-                navigation.replace('Closet'); // Use replace instead of navigate
+                await AsyncStorage.setItem('isAuthenticated', 'true');
+                navigation.replace('MainTabs'); // changed from 'Closet' 
             } else {
                 setError('Login failed: No token received');
             }

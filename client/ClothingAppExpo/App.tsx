@@ -1,71 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { Linking } from 'react-native';
-import { NavigationContainer, LinkingOptions, NavigationContainerRef } from '@react-navigation/native';
-import { createStackNavigator, StackScreenProps } from '@react-navigation/stack';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import CreateUserScreen from './src/screens/create_user';
 import ResetPasswordScreen from './src/screens/reset_pw';
 import LoginUserScreen from './src/screens/login_user';
 import VerifyUserScreen from './src/screens/verify_user';
-import ClosetScreen from './src/screens/closet';
-import { RootStackParamList } from './src/types/navigation';
+import ForgotPasswordScreen from './src/screens/forgot_password';
+import MainTabs from './src/navigation/MainTabs';
+import { AuthStackParamList } from './src/types/navigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios'; // Import axios for making HTTP requests
+import { validateToken } from './src/api/auth';
 
-const Stack = createStackNavigator<RootStackParamList>();
-const navigationRef = React.createRef<NavigationContainerRef<RootStackParamList>>();
+const Stack = createStackNavigator<AuthStackParamList>();
 
-const linking: LinkingOptions<RootStackParamList> = {
-  prefixes: ['myapp://', 'exp://'],
-  config: {
-    screens: {
-      CreateUser: 'create_user',
-      ResetPassword: 'set_new_password/:token',
-      Login: 'login',
-      Closet: 'closet',
-    },
-  },
-  async getInitialURL() {
-    const url = await Linking.getInitialURL();
-    console.log("Initial URL:", url);
-    return url;
-  },
-};
-
-// Function to validate token with backend
-const validateToken = async (token: string) => {
-  try {
-    const response = await axios.post('https://your-backend-url.com/validate-token', { token });
-    return response.data.isValid;
-  } catch (error) {
-    console.error('Error validating token:', error);
-    return false;
-  }
-};
-
-export default function App() {
+const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Check for authentication token on app start
     checkAuthStatus();
   }, []);
 
   const checkAuthStatus = async () => {
     try {
-      const token = await AsyncStorage.getItem('userToken');
-      if (token) {
-        // Validate token with backend
-        const isValid = await validateToken(token);
-        if (!isValid) {
-          // If token is invalid, remove it
-          await AsyncStorage.removeItem('userToken');
-          setIsAuthenticated(false);
-        } else {
-          setIsAuthenticated(true);
-        }
+      const { isValid } = await validateToken();
+      const isAuthenticatedValue = await AsyncStorage.getItem('isAuthenticated');
+      
+      if (isValid && isAuthenticatedValue === 'true') {
+        setIsAuthenticated(true);
       } else {
+        await AsyncStorage.removeItem('isAuthenticated');
         setIsAuthenticated(false);
       }
     } catch (error) {
@@ -82,61 +47,23 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer ref={navigationRef} linking={linking}>
-        <Stack.Navigator 
-          initialRouteName={isAuthenticated ? "Closet" : "Login"}
+      <NavigationContainer>
+        <Stack.Navigator
           screenOptions={{
-            headerStyle: {
-              backgroundColor: '#f4511e',
-            },
-            headerTintColor: '#fff',
-            headerTitleStyle: {
-              fontWeight: 'bold',
-            },
+            headerShown: false,
           }}
+          initialRouteName={isAuthenticated ? "MainTabs" : "Login"}
         >
-          {isAuthenticated ? (
-            <Stack.Screen 
-              name="Closet" 
-              component={ClosetScreen}
-              options={{
-                title: 'My Closet',
-              }}
-            />
-          ) : (
-            <>
-              <Stack.Screen 
-                name="Login" 
-                component={LoginUserScreen}
-                options={{
-                  title: 'Login',
-                }}
-              />
-              <Stack.Screen 
-                name="CreateUser" 
-                component={CreateUserScreen}
-                options={{
-                  title: 'Create Account',
-                }}
-              />
-              <Stack.Screen 
-                name="ResetPassword" 
-                component={ResetPasswordScreen}
-                options={{
-                  title: 'Reset Password',
-                }}
-              />
-              <Stack.Screen 
-                name="VerifyUser" 
-                component={VerifyUserScreen}
-                options={{
-                  title: 'Verify Account',
-                }}
-              />
-            </>
-          )}
+          <Stack.Screen name="Login" component={LoginUserScreen} />
+          <Stack.Screen name="CreateUser" component={CreateUserScreen} />
+          <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+          <Stack.Screen name="VerifyUser" component={VerifyUserScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          <Stack.Screen name="MainTabs" component={MainTabs} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
   );
-}
+};
+
+export default App;

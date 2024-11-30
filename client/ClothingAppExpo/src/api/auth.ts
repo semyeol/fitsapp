@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL } from './config';
+import config from '@config';
 
 export interface User {
     id: number;
@@ -30,7 +30,7 @@ export const validateToken = async (): Promise<{ isValid: boolean; user?: User }
         const token = await getAuthToken();
         if (!token) return { isValid: false };
 
-        const response = await fetch(`${API_URL}/validate-token`, {
+        const response = await fetch(`${config.apiBaseUrl}/validate-token`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
