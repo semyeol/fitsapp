@@ -3,13 +3,13 @@ import { View, Text, StyleSheet, Button } from "react-native";
 import { CompositeNavigationProp } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { MainAppStackParamList, RootStackParamList } from '../types/navigation';
+import { MainTabParamList, AuthStackParamList } from '../types/navigation';
 import { removeAuthToken } from '../api/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type ClosetScreenNavigationProp = CompositeNavigationProp<
-    BottomTabNavigationProp<MainAppStackParamList, 'Closet'>,
-    StackNavigationProp<RootStackParamList>
+    BottomTabNavigationProp<MainTabParamList, 'Closet'>,
+    StackNavigationProp<AuthStackParamList>
 >;
 
 type ClosetScreenProps = {

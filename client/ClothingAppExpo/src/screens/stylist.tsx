@@ -1,11 +1,11 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import { MainAppStackParamList } from '../types/navigation';
+import { MainTabParamList } from '../types/navigation';
 
-type FitBuilderScreenProps = BottomTabScreenProps<MainAppStackParamList, 'FitBuilder'>;
+type StylistScreenProps = BottomTabScreenProps<MainTabParamList, 'Stylist'>;
 
-const FitBuilderScreen: React.FC<FitBuilderScreenProps> = () => {
+const StylistScreen: React.FC<StylistScreenProps> = () => {
     return (
         <View style={styles.container}>
             <Text>Fit Builder Screen</Text>
@@ -22,4 +22,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default FitBuilderScreen;
+export default StylistScreen;

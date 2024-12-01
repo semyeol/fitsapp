@@ -13,8 +13,6 @@ export type AuthStackParamList = {
 // For the main app tabs
 export type MainTabParamList = {
     Closet: undefined;
-    FitBuilder: undefined;
+    Stylist: undefined;
+    Fits: undefined;
 };
-
-// Re-export RootStackParamList as a combination of both for backwards compatibility
-export type RootStackParamList = AuthStackParamList;

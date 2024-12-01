@@ -30,7 +30,7 @@ export const validateToken = async (): Promise<{ isValid: boolean; user?: User }
         const token = await getAuthToken();
         if (!token) return { isValid: false };
 
-        const response = await fetch(`${config.apiBaseUrl}/validate-token`, {
+        const response = await fetch(`${config.extra.apiBaseUrl}/validate-token`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,

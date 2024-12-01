@@ -3,9 +3,9 @@ import { View, Button, Alert, Text, StyleSheet } from 'react-native';
 import { createUser } from '../api/user';
 import CustomInput from '../components/CustomInput';
 import { StackScreenProps } from '@react-navigation/stack';
-import { RootStackParamList } from '../types/navigation';
+import { AuthStackParamList } from '../types/navigation';
 
-type CreateUserScreenProps = StackScreenProps<RootStackParamList, 'CreateUser'>;
+type CreateUserScreenProps = StackScreenProps<AuthStackParamList, 'CreateUser'>;
 
 const CreateUserScreen: React.FC<CreateUserScreenProps> = ({ navigation }) => {
   const [email, setEmail] = useState<string>('');

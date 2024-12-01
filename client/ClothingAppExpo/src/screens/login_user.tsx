@@ -4,10 +4,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {loginUser} from "../api/user";
 import CustomInput from "../components/CustomInput";
 import { StackScreenProps } from '@react-navigation/stack';
-import { RootStackParamList } from '../types/navigation';
+import { AuthStackParamList } from '../types/navigation';
 import { setAuthToken } from '../api/auth';
 
-type LoginUserScreenProps = StackScreenProps<RootStackParamList, 'Login'>;
+type LoginUserScreenProps = StackScreenProps<AuthStackParamList, 'Login'>;
 
 const LoginUserScreen: React.FC<LoginUserScreenProps> = ({ navigation }) => {
     const [identifier, setIdentifier] = useState<string>('');

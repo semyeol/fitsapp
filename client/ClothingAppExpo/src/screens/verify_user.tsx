@@ -2,9 +2,9 @@ import React, {useState} from 'react';
 import { View, TextInput, Button, Alert, StyleSheet } from 'react-native';
 import { verifyUser } from '../api/user';
 import { StackScreenProps } from '@react-navigation/stack';
-import { RootStackParamList } from '../types/navigation';
+import { AuthStackParamList } from '../types/navigation';
 
-type VerifyUserScreenProps = StackScreenProps<RootStackParamList, 'VerifyUser'>;
+type VerifyUserScreenProps = StackScreenProps<AuthStackParamList, 'VerifyUser'>;
 
 const VerifyUserScreen: React.FC<VerifyUserScreenProps> = ({ route }) => {
   const { email } = route.params;

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Button } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
-import { RootStackParamList } from '../types/navigation';
+import { AuthStackParamList } from '../types/navigation';
 import CustomInput from '../components/CustomInput';
 import config from '@config';
 
-type ResetPasswordScreenProps = StackScreenProps<RootStackParamList, 'ResetPassword'>;
+type ResetPasswordScreenProps = StackScreenProps<AuthStackParamList, 'ResetPassword'>;
 
 const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ route, navigation }) => {
   const { token } = route.params;
